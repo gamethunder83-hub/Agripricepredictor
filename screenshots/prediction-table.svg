@@ -1,0 +1,29 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="900" fill="#EFEADF"/>
+  <rect x="72" y="56" width="1296" height="788" rx="32" fill="#FFFDF9"/>
+  <text x="118" y="126" fill="#B76D2B" font-family="Arial" font-size="18" font-weight="700">PREDICTION TABLE</text>
+  <text x="118" y="176" fill="#21311C" font-family="Arial" font-size="42" font-weight="700">Sample 7-day onion forecast with confidence interval</text>
+  <rect x="118" y="230" width="1204" height="66" rx="18" fill="#F8F2E8"/>
+  <text x="150" y="272" fill="#61725D" font-family="Arial" font-size="20" font-weight="700">Date</text>
+  <text x="430" y="272" fill="#61725D" font-family="Arial" font-size="20" font-weight="700">Predicted Price</text>
+  <text x="760" y="272" fill="#61725D" font-family="Arial" font-size="20" font-weight="700">Lower Bound</text>
+  <text x="1040" y="272" fill="#61725D" font-family="Arial" font-size="20" font-weight="700">Upper Bound</text>
+  <g fill="#21311C" font-family="Arial" font-size="22">
+    <text x="150" y="352">2026-04-04</text><text x="430" y="352">Rs. 2161.48</text><text x="760" y="352">Rs. 2106.72</text><text x="1040" y="352">Rs. 2216.24</text>
+    <text x="150" y="422">2026-04-05</text><text x="430" y="422">Rs. 2174.03</text><text x="760" y="422">Rs. 2119.61</text><text x="1040" y="422">Rs. 2228.45</text>
+    <text x="150" y="492">2026-04-06</text><text x="430" y="492">Rs. 2188.82</text><text x="760" y="492">Rs. 2134.44</text><text x="1040" y="492">Rs. 2243.20</text>
+    <text x="150" y="562">2026-04-07</text><text x="430" y="562">Rs. 2201.16</text><text x="760" y="562">Rs. 2146.20</text><text x="1040" y="562">Rs. 2256.12</text>
+    <text x="150" y="632">2026-04-08</text><text x="430" y="632">Rs. 2217.91</text><text x="760" y="632">Rs. 2161.55</text><text x="1040" y="632">Rs. 2274.27</text>
+    <text x="150" y="702">2026-04-09</text><text x="430" y="702">Rs. 2235.34</text><text x="760" y="702">Rs. 2179.20</text><text x="1040" y="702">Rs. 2291.48</text>
+    <text x="150" y="772">2026-04-10</text><text x="430" y="772">Rs. 2262.08</text><text x="760" y="772">Rs. 2201.64</text><text x="1040" y="772">Rs. 2322.52</text>
+  </g>
+  <g stroke="#E5DED1">
+    <line x1="118" y1="316" x2="1322" y2="316"/>
+    <line x1="118" y1="386" x2="1322" y2="386"/>
+    <line x1="118" y1="456" x2="1322" y2="456"/>
+    <line x1="118" y1="526" x2="1322" y2="526"/>
+    <line x1="118" y1="596" x2="1322" y2="596"/>
+    <line x1="118" y1="666" x2="1322" y2="666"/>
+    <line x1="118" y1="736" x2="1322" y2="736"/>
+  </g>
+</svg>

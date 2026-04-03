@@ -165,8 +165,8 @@ Set `VITE_API_BASE_URL=http://localhost:5000` in `frontend/.env` for local devel
 
 ## Deliverables Status
 
-- GitHub repository link: to be created after publishing this workspace to GitHub
-- Live deployment link: to be created after Vercel redeploy
+- GitHub repository link: published at `https://github.com/gamethunder83-hub/Agripricepredictor`
+- Live deployment link: Vercel redeploy in progress
 - Screenshots: included in `screenshots/`
 - Sample prediction output: included above
 - Local run instructions: included above
