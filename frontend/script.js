@@ -48,8 +48,22 @@ async function predictPrice() {
     input_unit: inputUnit.value,
   };
 
-  if (!payload.month || !payload.day || !payload.lag1_price || !payload.lag7_price) {
-    statusText.textContent = "Please fill all fields before predicting.";
+  const missingFields = [];
+  if (!Number.isFinite(payload.month) || payload.month < 1 || payload.month > 12) {
+    missingFields.push("month");
+  }
+  if (!Number.isFinite(payload.day) || payload.day < 1 || payload.day > 31) {
+    missingFields.push("day");
+  }
+  if (!Number.isFinite(payload.lag1_price) || payload.lag1_price <= 0) {
+    missingFields.push("yesterday price");
+  }
+  if (!Number.isFinite(payload.lag7_price) || payload.lag7_price <= 0) {
+    missingFields.push("last week price");
+  }
+
+  if (missingFields.length > 0) {
+    statusText.textContent = `Please check: ${missingFields.join(", ")}.`;
     return;
   }
 
@@ -78,4 +92,9 @@ async function predictPrice() {
 
 predictBtn.addEventListener("click", predictPrice);
 refreshHistoryBtn.addEventListener("click", loadHistory);
-window.addEventListener("DOMContentLoaded", loadHistory);
+window.addEventListener("DOMContentLoaded", () => {
+  const today = new Date();
+  if (!monthInput.value) monthInput.value = String(today.getMonth() + 1);
+  if (!dayInput.value) dayInput.value = String(today.getDate());
+  loadHistory();
+});
