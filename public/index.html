@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Commodity Price Predictor</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero card">
+        <p class="eyebrow">Flask + Random Forest Price Forecast</p>
+        <h1>Agri commodity price predictor</h1>
+        <p class="hero-copy">
+          Enter the target date with yesterday's and last week's prices to estimate the
+          next market price per kilogram.
+        </p>
+      </section>
+
+      <section class="dashboard card">
+        <div class="grid">
+          <label>
+            <span>Month</span>
+            <input id="month" type="number" min="1" max="12" placeholder="4" />
+          </label>
+          <label>
+            <span>Day</span>
+            <input id="day" type="number" min="1" max="31" placeholder="12" />
+          </label>
+          <label>
+            <span>Yesterday price</span>
+            <input id="lag1" type="number" min="0.01" step="0.01" placeholder="28.50" />
+          </label>
+          <label>
+            <span>Last week price</span>
+            <input id="lag7" type="number" min="0.01" step="0.01" placeholder="26.80" />
+          </label>
+          <label>
+            <span>Input unit</span>
+            <select id="inputUnit">
+              <option value="kg">Price is already per kg</option>
+              <option value="quintal">Price is per quintal</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button id="predictBtn">Predict price</button>
+          <p id="status" class="status">Load the trained model, then predict.</p>
+        </div>
+
+        <section class="result-panel">
+          <h2>Predicted price</h2>
+          <p id="result" class="result">--</p>
+          <p class="hint">Output is always shown as rupees per kg.</p>
+        </section>
+      </section>
+
+      <section class="history card">
+        <div class="history-header">
+          <h2>Recent training data</h2>
+          <button id="refreshHistory" class="secondary">Refresh history</button>
+        </div>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </main>
+
+    <script src="/script.js"></script>
+  </body>
+</html>

@@ -7,12 +7,21 @@ This project is a lightweight agri-commodity price prediction system built with 
 ```text
 backend/
   app.py
+  __init__.py
   train_model.py
   requirements.txt
 frontend/
   index.html
   styles.css
   script.js
+public/
+  index.html
+  styles.css
+  script.js
+app.py
+requirements.txt
+.python-version
+vercel.json
 data/
   price_data.csv
 README.md
@@ -32,6 +41,7 @@ README.md
 - Optional quintal to kg conversion for user inputs
 - Clean frontend dashboard with simple form-based prediction flow
 - Basic error handling for invalid input and missing model files
+- Vercel-ready root Flask entrypoint plus `public/` static assets
 
 ## Dataset Format
 
@@ -102,6 +112,24 @@ Visit:
 http://127.0.0.1:5000/
 ```
 
+## Deploy On Vercel
+
+This repository is now structured for a root-level Flask deployment on Vercel.
+
+Vercel setup:
+
+1. Import the GitHub repository
+2. Set the Root Directory to the repository root
+3. Keep the framework detection automatic
+4. Deploy
+
+Deployment notes:
+
+- `app.py` at the project root is the Vercel Flask entrypoint
+- `public/` contains the static dashboard files Vercel serves directly
+- If `backend/model.pkl` is missing, the app auto-trains a Random Forest model in memory from `data/price_data.csv`
+- If you want a saved `model.pkl`, run `python backend/train_model.py` locally before deploying
+
 ## API Endpoints
 
 ### `GET /api/health`
@@ -136,5 +164,6 @@ Response:
 ## Notes
 
 - This repo is ready to push to GitHub.
-- Because `model.pkl` is generated from scikit-learn, you must run the training script once on a Python machine before predictions will work.
+- Vercel reads Python dependencies from the root `requirements.txt` and Python version from `.python-version`.
+- The live Vercel app can still predict even without a committed `model.pkl`, because the backend auto-trains from the CSV when needed.
 - If you want to retrain on another commodity, replace the CSV data and rerun the training script.

@@ -3,11 +3,17 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, redirect, request, send_from_directory
+
+try:
+    from backend.train_model import build_model_bundle
+except ModuleNotFoundError:
+    from train_model import build_model_bundle
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
 FRONTEND_DIR = PROJECT_DIR / "frontend"
+PUBLIC_DIR = PROJECT_DIR / "public"
 DATA_FILE = PROJECT_DIR / "data" / "price_data.csv"
 MODEL_FILE = BASE_DIR / "model.pkl"
 METADATA_FILE = BASE_DIR / "model_metadata.json"
@@ -27,13 +33,17 @@ def load_metadata():
     return json.loads(METADATA_FILE.read_text())
 
 
+def static_dir():
+    if PUBLIC_DIR.exists():
+        return PUBLIC_DIR
+    return FRONTEND_DIR
+
+
 def load_model_bundle():
     if not MODEL_FILE.exists():
-        raise FileNotFoundError(
-            "Trained model not found. Run `python backend/train_model.py` first."
-        )
-    bundle = joblib.load(MODEL_FILE)
-    return bundle, load_metadata()
+        bundle, metadata = build_model_bundle(save_artifacts=False)
+        return bundle, metadata
+    return joblib.load(MODEL_FILE), load_metadata()
 
 
 def recent_history(limit=14):
@@ -47,17 +57,22 @@ def recent_history(limit=14):
 
 @app.get("/")
 def index():
-    return send_from_directory(FRONTEND_DIR, "index.html")
+    return redirect("/index.html", code=307)
+
+
+@app.get("/index.html")
+def html():
+    return send_from_directory(static_dir(), "index.html")
 
 
 @app.get("/styles.css")
 def styles():
-    return send_from_directory(FRONTEND_DIR, "styles.css")
+    return send_from_directory(static_dir(), "styles.css")
 
 
 @app.get("/script.js")
 def script():
-    return send_from_directory(FRONTEND_DIR, "script.js")
+    return send_from_directory(static_dir(), "script.js")
 
 
 @app.get("/api/health")

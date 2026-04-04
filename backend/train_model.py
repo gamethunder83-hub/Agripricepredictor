@@ -44,7 +44,7 @@ def load_dataset():
     return df
 
 
-def train_model():
+def build_model_bundle(save_artifacts=True):
     df = load_dataset()
     feature_columns = ["month", "day", "lag1_price", "lag7_price"]
     X = df[feature_columns]
@@ -71,19 +71,26 @@ def train_model():
         "feature_columns": feature_columns,
     }
 
-    joblib.dump(
-        {
-            "model": model,
-            "feature_columns": feature_columns,
-            "price_unit": "kg",
-        },
-        MODEL_FILE,
-    )
-    METADATA_FILE.write_text(json.dumps(metrics, indent=2))
+    bundle = {
+        "model": model,
+        "feature_columns": feature_columns,
+        "price_unit": "kg",
+    }
+
+    if save_artifacts:
+        joblib.dump(bundle, MODEL_FILE)
+        METADATA_FILE.write_text(json.dumps(metrics, indent=2))
+
+    return bundle, metrics
+
+
+def train_model():
+    bundle, metrics = build_model_bundle(save_artifacts=True)
 
     print("Model trained successfully.")
     print(f"Saved model to: {MODEL_FILE}")
     print(json.dumps(metrics, indent=2))
+    return bundle, metrics
 
 
 if __name__ == "__main__":
