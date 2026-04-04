@@ -1,12 +1,5 @@
-node_modules/
-dist/
-build/
-.venv/
-venv/
+# Ignore Python cache and trained artifacts
 __pycache__/
 *.pyc
-.env
-.env.local
-models/*.joblib
-models/*.keras
-backend/data/generated_*.csv
+backend/model.pkl
+backend/model_metadata.json

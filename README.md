@@ -1,172 +1,140 @@
-# AI-ML Based Price Prediction System for Agri-Horticultural Commodities
+# Commodity Price Prediction with Flask and Random Forest
 
-A full-stack web application that predicts future prices of onion, potato, and pulses using machine learning. The project combines a Flask REST API, feature-engineered forecasting models, and a React dashboard designed for farmer-friendly decision support.
+This project is a lightweight agri-commodity price prediction system built with Flask, scikit-learn, and a simple HTML/CSS/JavaScript dashboard.
 
 ## Project Structure
 
 ```text
-.
-|-- backend/
-|   |-- api/
-|   |-- data/
-|   |-- services/
-|   |-- utils/
-|   |-- app.py
-|   `-- requirements.txt
-|-- frontend/
-|   |-- public/
-|   |-- src/
-|   |-- package.json
-|   `-- vercel.json
-|-- models/
-|-- screenshots/
-|-- render.yaml
-`-- README.md
+backend/
+  app.py
+  train_model.py
+  requirements.txt
+frontend/
+  index.html
+  styles.css
+  script.js
+data/
+  price_data.csv
+README.md
 ```
 
 ## Features
 
-- Predicts 7, 14, 21, or 30 days ahead for onion, potato, and pulses
-- Random Forest Regression as the default production model
-- Optional LSTM training when TensorFlow is available
-- Historical trends, future forecasts, and confidence intervals
-- REST API endpoints for model training, prediction, and price history
-- Demo-ready synthetic dataset shaped like mandi/Agmarknet-style commodity data
-- Clean dashboard built with React and Recharts
+- Flask backend with API endpoints for health, history, and prediction
+- RandomForestRegressor model trained on:
+  - `month`
+  - `day`
+  - `lag1_price`
+  - `lag7_price`
+- Dataset preprocessing:
+  - `date` converted into `month` and `day`
+  - lag features generated from the `price` column
+- Optional quintal to kg conversion for user inputs
+- Clean frontend dashboard with simple form-based prediction flow
+- Basic error handling for invalid input and missing model files
 
-## Tech Stack
+## Dataset Format
 
-- Frontend: React, Vite, Axios, Recharts, Lucide React
-- Backend: Flask, Flask-CORS, pandas, numpy, scikit-learn, joblib
-- Deployment:
-  - Full stack: Vercel
+The CSV file must contain:
+
+```csv
+date,price
+2025-01-01,22.10
+2025-01-02,22.40
+```
+
+- `date`: market date
+- `price`: commodity price
+- Prices should ideally be stored per kg
+- If your source data is per quintal, set `PRICE_UNIT = "quintal"` inside `backend/train_model.py`
+
+## How Training Works
+
+The training script:
+1. Loads the CSV dataset from `data/price_data.csv`
+2. Cleans invalid rows
+3. Converts the date into `month` and `day`
+4. Creates:
+   - `lag1_price`
+   - `lag7_price`
+5. Trains a `RandomForestRegressor`
+6. Saves the trained model to `backend/model.pkl`
+7. Saves training metrics to `backend/model_metadata.json`
+
+## Run Locally
+
+### 1. Create and activate a virtual environment
+
+Windows PowerShell:
+
+```powershell
+python -m venv .venv
+.\\.venv\\Scripts\\Activate.ps1
+```
+
+### 2. Install backend dependencies
+
+```powershell
+pip install -r backend/requirements.txt
+```
+
+### 3. Train the model
+
+```powershell
+python backend/train_model.py
+```
+
+This creates:
+- `backend/model.pkl`
+- `backend/model_metadata.json`
+
+### 4. Start the Flask app
+
+```powershell
+python backend/app.py
+```
+
+### 5. Open the dashboard
+
+Visit:
+
+```text
+http://127.0.0.1:5000/
+```
 
 ## API Endpoints
 
-- `GET /health`
-- `GET /get-history?commodity=onion&lookback_days=60`
-- `POST /train-model`
-- `POST /predict`
+### `GET /api/health`
+Returns API status and whether the model is ready.
 
-### Example `/predict` request
+### `GET /api/history`
+Returns the recent rows from the dataset.
 
-```json
-{
-  "commodity": "onion",
-  "model_type": "random_forest",
-  "horizon_days": 7
-}
-```
-
-### Sample prediction output
+### `POST /api/predict`
+Request body:
 
 ```json
 {
-  "commodity": "onion",
-  "modelType": "random_forest",
-  "horizonDays": 7,
-  "latestObservedPrice": 2154.0,
-  "predictions": [
-    {
-      "date": "2026-04-04",
-      "predicted_price": 2161.48,
-      "lower_bound": 2106.72,
-      "upper_bound": 2216.24
-    },
-    {
-      "date": "2026-04-05",
-      "predicted_price": 2174.03,
-      "lower_bound": 2119.61,
-      "upper_bound": 2228.45
-    }
-  ],
-  "metrics": {
-    "mae": 38.42,
-    "rmse": 54.2,
-    "r2": 0.9214
-  }
+  "month": 4,
+  "day": 10,
+  "lag1_price": 28.5,
+  "lag7_price": 27.8,
+  "input_unit": "kg"
 }
 ```
 
-## Machine Learning Design
+Response:
 
-### Random Forest
-
-- Uses lag features, rolling averages, rolling standard deviation, arrivals, rainfall, and temperature
-- Commodity-specific model files are saved to the `models/` directory
-- Confidence intervals are estimated from the variance across decision trees
-
-### LSTM
-
-- Supported in the standalone Flask backend codebase
-- Omitted from the Vercel serverless deployment to keep production hosting reliable
-- The deployed app uses Random Forest as the production prediction engine
-
-## Screenshots
-
-Dashboard overview:
-
-![Dashboard overview](./screenshots/dashboard-overview.svg)
-
-Prediction table:
-
-![Prediction table](./screenshots/prediction-table.svg)
-
-## Local Setup
-
-### 1. Backend
-
-```bash
-cd backend
-python -m venv .venv
-.venv\\Scripts\\activate
-pip install -r requirements.txt
-python app.py
+```json
+{
+  "predicted_price_per_kg": 29.14,
+  "model_price_unit": "kg",
+  "message": "Prediction generated successfully."
+}
 ```
-
-Backend runs at `http://localhost:5000`.
-
-### 2. Frontend
-
-```bash
-cd frontend
-copy .env.example .env
-npm install
-npm run dev
-```
-
-Frontend runs at `http://localhost:5173`.
-
-Set `VITE_API_BASE_URL=http://localhost:5000` in `frontend/.env` for local development, or leave it empty in Vercel to use same-origin `/api` routes.
-
-## Deployment
-
-### Full Stack on Vercel
-
-- Import the repository into Vercel
-- Set the project root to `frontend`
-- The React dashboard is built by Vite
-- The API is served from `frontend/api/[...route].py` as Vercel Python serverless functions
-- `VITE_API_BASE_URL` is optional for production on Vercel, because the frontend can call same-origin `/api/*`
-
-### Frontend on Netlify
-
-- Set base directory to `frontend`
-- Build command: `npm run build`
-- Publish directory: `dist`
-- `frontend/netlify.toml` is already included
 
 ## Notes
 
-- If the CSV dataset is missing or too small, the API auto-generates a larger synthetic demo dataset in memory.
-- For a real deployment, replace `backend/data/commodity_prices.csv` with Agmarknet or mandi historical data.
-- Weather features are currently demo/synthetic-friendly and can be swapped for a real weather API later.
-- The Vercel deployment is optimized around Random Forest for stability and faster cold starts.
-
-## Deliverables Status
-
-- GitHub repository link: published at `https://github.com/gamethunder83-hub/Agripricepredictor`
-- Live deployment link: Vercel redeploy in progress
-- Screenshots: included in `screenshots/`
-- Sample prediction output: included above
-- Local run instructions: included above
+- This repo is ready to push to GitHub.
+- Because `model.pkl` is generated from scikit-learn, you must run the training script once on a Python machine before predictions will work.
+- If you want to retrain on another commodity, replace the CSV data and rerun the training script.
