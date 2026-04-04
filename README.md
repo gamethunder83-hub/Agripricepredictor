@@ -114,7 +114,7 @@ http://127.0.0.1:5000/
 
 ## Deploy On Vercel
 
-This repository is now structured for a root-level Flask deployment on Vercel.
+This repository is now structured for a Vercel Flask deployment from the repository root.
 
 Vercel setup:
 
@@ -127,6 +127,7 @@ Deployment notes:
 
 - `app.py` at the project root is the Vercel Flask entrypoint
 - `public/` contains the static dashboard files Vercel serves directly
+- `vercel.json` includes an `experimentalServices` entry so Vercel can map the repo to a single root service
 - If `backend/model.pkl` is missing, the app auto-trains a Random Forest model in memory from `data/price_data.csv`
 - If you want a saved `model.pkl`, run `python backend/train_model.py` locally before deploying
 

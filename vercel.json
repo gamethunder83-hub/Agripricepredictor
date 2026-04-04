@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "app.py": {
-      "excludeFiles": "{frontend/**,README.md,.gitignore}"
+  "experimentalServices": {
+    "app": {
+      "entrypoint": "app.py",
+      "routePrefix": "/"
     }
   }
 }
