@@ -6,15 +6,17 @@ import pandas as pd
 from flask import Flask, jsonify, redirect, request, send_from_directory
 
 try:
+    from backend.data_utils import DEFAULT_COMMODITY, DEFAULT_DATA_FILE, prepare_price_dataset
     from backend.train_model import build_model_bundle
 except ModuleNotFoundError:
+    from data_utils import DEFAULT_COMMODITY, DEFAULT_DATA_FILE, prepare_price_dataset
     from train_model import build_model_bundle
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = BASE_DIR.parent
 FRONTEND_DIR = PROJECT_DIR / "frontend"
 PUBLIC_DIR = PROJECT_DIR / "public"
-DATA_FILE = PROJECT_DIR / "data" / "price_data.csv"
+DATA_FILE = DEFAULT_DATA_FILE
 MODEL_FILE = BASE_DIR / "model.pkl"
 METADATA_FILE = BASE_DIR / "model_metadata.json"
 
@@ -47,12 +49,11 @@ def load_model_bundle():
 
 
 def recent_history(limit=14):
-    df = pd.read_csv(DATA_FILE)
-    df["date"] = pd.to_datetime(df["date"])
-    df = df.sort_values("date")
+    df, schema = prepare_price_dataset(data_file=DATA_FILE, commodity=DEFAULT_COMMODITY)
     tail = df.tail(limit).copy()
     tail["date"] = tail["date"].dt.strftime("%Y-%m-%d")
-    return tail.to_dict(orient="records")
+    rows = tail.to_dict(orient="records")
+    return {"rows": rows, "schema": schema}
 
 
 @app.get("/")
@@ -82,7 +83,8 @@ def health():
 
 @app.get("/api/history")
 def history():
-    return jsonify({"history": recent_history()})
+    history_data = recent_history()
+    return jsonify({"history": history_data["rows"], "source_schema": history_data["schema"]})
 
 
 @app.post("/api/predict")

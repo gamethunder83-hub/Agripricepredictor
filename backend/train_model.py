@@ -1,4 +1,5 @@
 import json
+import os
 from pathlib import Path
 
 import joblib
@@ -7,30 +8,24 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 
+try:
+    from backend.data_utils import DEFAULT_COMMODITY, DEFAULT_DATA_FILE, prepare_price_dataset
+except ModuleNotFoundError:
+    from data_utils import DEFAULT_COMMODITY, DEFAULT_DATA_FILE, prepare_price_dataset
+
 BASE_DIR = Path(__file__).resolve().parent
-PROJECT_DIR = BASE_DIR.parent
-DATA_FILE = PROJECT_DIR / "data" / "price_data.csv"
 MODEL_FILE = BASE_DIR / "model.pkl"
 METADATA_FILE = BASE_DIR / "model_metadata.json"
-PRICE_UNIT = "kg"  # Change to "quintal" if your dataset prices are rupees/quintal.
-
-
-def convert_prices(df):
-    if PRICE_UNIT == "quintal":
-        df["price"] = df["price"] / 100.0
-    return df
-
+DATA_FILE = Path(os.getenv("PRICE_DATA_FILE", DEFAULT_DATA_FILE))
+TARGET_COMMODITY = os.getenv("TARGET_COMMODITY", DEFAULT_COMMODITY)
+TARGET_PRICE_COLUMN = os.getenv("TARGET_PRICE_COLUMN", "modal_price")
 
 def load_dataset():
-    df = pd.read_csv(DATA_FILE)
-    required_columns = {"date", "price"}
-    if not required_columns.issubset(df.columns):
-        raise ValueError("Dataset must contain 'date' and 'price' columns.")
-
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
-    df["price"] = pd.to_numeric(df["price"], errors="coerce")
-    df = df.dropna(subset=["date", "price"]).sort_values("date").reset_index(drop=True)
-    df = convert_prices(df)
+    df, schema = prepare_price_dataset(
+        data_file=DATA_FILE,
+        commodity=TARGET_COMMODITY,
+        price_column=TARGET_PRICE_COLUMN,
+    )
 
     df["month"] = df["date"].dt.month
     df["day"] = df["date"].dt.day
@@ -41,11 +36,11 @@ def load_dataset():
     if len(df) < 15:
         raise ValueError("Dataset is too small after creating lag features. Add more rows.")
 
-    return df
+    return df, schema
 
 
 def build_model_bundle(save_artifacts=True):
-    df = load_dataset()
+    df, schema = load_dataset()
     feature_columns = ["month", "day", "lag1_price", "lag7_price"]
     X = df[feature_columns]
     y = df["price"]
@@ -69,12 +64,19 @@ def build_model_bundle(save_artifacts=True):
         "test_rows": int(len(X_test)),
         "price_unit": "kg",
         "feature_columns": feature_columns,
+        "source_schema": schema,
+        "source_file": str(DATA_FILE),
+        "commodity": TARGET_COMMODITY,
+        "price_column": TARGET_PRICE_COLUMN,
     }
 
     bundle = {
         "model": model,
         "feature_columns": feature_columns,
         "price_unit": "kg",
+        "source_schema": schema,
+        "commodity": TARGET_COMMODITY,
+        "price_column": TARGET_PRICE_COLUMN,
     }
 
     if save_artifacts:

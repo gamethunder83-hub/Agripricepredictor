@@ -23,6 +23,7 @@ requirements.txt
 .python-version
 vercel.json
 data/
+  agmarknet_sample.csv
   price_data.csv
 README.md
 ```
@@ -42,10 +43,15 @@ README.md
 - Clean frontend dashboard with simple form-based prediction flow
 - Basic error handling for invalid input and missing model files
 - Vercel-ready root Flask entrypoint plus `public/` static assets
+- Supports both:
+  - simple CSVs with `date,price`
+  - real mandi CSVs with Agmarknet-style fields such as `Arrival_Date`, `Commodity`, `Min_Price`, `Max_Price`, and `Modal_Price`
 
 ## Dataset Format
 
-The CSV file must contain:
+The app now supports two dataset styles.
+
+### 1. Simple demo CSV
 
 ```csv
 date,price
@@ -53,23 +59,72 @@ date,price
 2025-01-02,22.40
 ```
 
-- `date`: market date
-- `price`: commodity price
-- Prices should ideally be stored per kg
-- If your source data is per quintal, set `PRICE_UNIT = "quintal"` inside `backend/train_model.py`
+### 2. Real mandi / Agmarknet-style CSV
+
+Common supported columns:
+
+```text
+State
+District
+Market
+Commodity
+Variety
+Arrival_Date
+Min_Price
+Max_Price
+Modal_Price
+```
+
+How it is handled:
+
+- `Arrival_Date` becomes `date`
+- `Modal_Price` is used as the target by default
+- mandi prices are assumed to be in rupees per quintal
+- the training pipeline converts them to rupees per kg by dividing by `100`
+- rows are filtered to the selected commodity, then averaged by date when multiple markets exist
+
+The official government mandi catalog confirms daily wholesale min, max, and modal prices from AGMARKNET:
+- [Current daily price of various commodities from various markets (Mandi)](https://www.data.gov.in/catalog/current-daily-price-various-commodities-various-markets-mandi)
+- [Resource page on data.gov.in](https://www.data.gov.in/resource/current-daily-price-various-commodities-various-markets-mandi)
+
+This repo also includes a small mandi-style example file:
+- `data/agmarknet_sample.csv`
 
 ## How Training Works
 
 The training script:
 1. Loads the CSV dataset from `data/price_data.csv`
 2. Cleans invalid rows
-3. Converts the date into `month` and `day`
-4. Creates:
+3. Detects whether the file is:
+   - a simple `date,price` dataset, or
+   - a mandi-style dataset with `Arrival_Date` and `Modal_Price`
+4. Converts mandi prices from quintal to kg when needed
+5. Converts the date into `month` and `day`
+6. Creates:
    - `lag1_price`
    - `lag7_price`
-5. Trains a `RandomForestRegressor`
-6. Saves the trained model to `backend/model.pkl`
-7. Saves training metrics to `backend/model_metadata.json`
+7. Trains a `RandomForestRegressor`
+8. Saves the trained model to `backend/model.pkl`
+9. Saves training metrics to `backend/model_metadata.json`
+
+You can choose the target commodity with an environment variable before training:
+
+```powershell
+$env:TARGET_COMMODITY="Onion"
+python backend/train_model.py
+```
+
+Examples:
+- `Onion`
+- `Potato`
+- `Pulses`
+
+You can also override the source file:
+
+```powershell
+$env:PRICE_DATA_FILE="data\\agmarknet_prices.csv"
+python backend/train_model.py
+```
 
 ## Run Locally
 
@@ -128,7 +183,7 @@ Deployment notes:
 - `app.py` at the project root is the Vercel Flask entrypoint
 - `public/` contains the static dashboard files Vercel serves directly
 - `vercel.json` includes an `experimentalServices` entry so Vercel can map the repo to a single root service
-- If `backend/model.pkl` is missing, the app auto-trains a Random Forest model in memory from `data/price_data.csv`
+- If `backend/model.pkl` is missing, the app auto-trains a Random Forest model in memory from the configured CSV
 - If you want a saved `model.pkl`, run `python backend/train_model.py` locally before deploying
 
 ## API Endpoints
